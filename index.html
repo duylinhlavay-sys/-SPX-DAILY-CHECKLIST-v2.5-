@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title id="appTitle">[SPX] DAILY CHECKLIST</title>
+  <link rel="icon" id="appFavicon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
+  <meta name="theme-color" content="#ff6a00" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SPX Checklist" />
+  <meta name="description" content="Daily Checklist Management System" />
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" id="pwaManifest" />
+  
+  <!-- ============================================
+       [SPX] DAILY CHECKLIST - APP CONFIGURATION
+       ============================================
+       TÙY CHỈNH LOGO & BRANDING TẠI ĐÂY:
+       
+       HƯỚNG DẪN:
+       1. Tìm ảnh logo bạn muốn (PNG, SVG, JPG)
+       2. Upload lên Google Drive hoặc Imgur để lấy link
+       3. Paste link vào logoUrl và faviconUrl bên dưới
+       4. Lưu file và refresh trang để thấy thay đổi
+       
+       GOOGLE DRIVE: https://drive.google.com/file/d/FILE_ID/view
+       Đổi thành: https://drive.google.com/uc?export=view&id=FILE_ID
+       
+       IMGUR: Upload tại imgur.com, click chuột phải → Copy image address
+  ============================================ -->
+  <script>
+    const APP_CONFIG = {
+      // ===== TÊN APP & PHIÊN BẢN =====
+      appTitle: '[SPX] DAILY CHECKLIST',
+      appVersion: 'v2.5',
+      
+      // ===== LOGO & FAVICON =====
+      // 🔽 PASTE LINK ẢNH LOGO CỦA BẠN VÀO ĐÂY 🔽
+      logoUrl: 'https://images.seeklogo.com/logo-png/49/1/spx-express-indonesia-logo-png_seeklogo-499970.png',
+      faviconUrl: 'https://images.seeklogo.com/logo-png/49/1/spx-express-indonesia-logo-png_seeklogo-499970.png',
+      
+      // ===== THÔNG TIN CÔNG TY =====
+      companyName: 'SPX Express TVH',
+      copyrightYear: '2025',
+      footerText: 'Daily Checklist Management System with Security'
+    };
+  </script>
+  
+  <?!= include('styles'); ?>
+  
+</head>
+  <body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="aurora"></div>
+
+  <!-- AUTH CHECK OVERLAY -->
+  <div id="authOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:grid;place-items:center;">
+    <div class="glass" style="padding:40px;text-align:center;max-width:500px;">
+      <h2 style="margin:0 0 16px">🔒 Checking Authentication...</h2>
+      <p>Please wait while we verify your access.</p>
+      <div class="skeleton" style="height:40px;margin-top:20px"></div>
+    </div>
+  </div>
+
+  <!-- TOPBAR (ẩn ban đầu, hiện sau khi auth) -->
+  <div id="topbar" class="topbar glass" style="display:none">
+    <div class="brand">
+      <img id="topbarLogo" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" alt="Logo" style="height:40px;width:auto;object-fit:contain;border-radius:6px" />
+      <h1 id="topbarTitle">[SPX] DAILY CHECKLIST</h1>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex:1;justify-content:center;max-width:600px;margin:0 auto">
+      <!-- Global Search -->
+      <div id="globalSearchContainer" style="position:relative;flex:1;max-width:400px">
+        <input id="globalSearch" type="text" placeholder="🔍 Tìm kiếm toàn bộ..." 
+          style="width:100%;padding:8px 16px;border-radius:20px;border:1px solid var(--stroke);background:var(--glass);color:var(--ink);font-size:14px;outline:none;transition:all 0.2s" />
+        <div id="globalSearchResults" class="glass" style="position:absolute;top:100%;left:0;right:0;margin-top:8px;max-height:400px;overflow-y:auto;display:none;z-index:1000;border-radius:12px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2)"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="backCover" class="pill pill-button" title="Quay về">↩ <span id="i18n-back">Trang bìa</span></button>
+      <div id="gradientThemeSelector" style="position:relative;display:inline-block">
+        <button id="gradientThemeBtn" class="pill pill-button" title="Chọn màu gradient">🎨</button>
+        <div id="gradientThemeMenu" class="glass" style="position:absolute;top:100%;right:0;margin-top:8px;padding:12px;border-radius:12px;min-width:200px;display:none;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.2)">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">Gradient Themes 2025</div>
+          <button class="gradient-option" data-gradient="sunset" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #ff6a00, #ffb366);color:#1a0d00;font-weight:600;cursor:pointer;text-align:left">🌅 Sunset Orange</button>
+          <button class="gradient-option" data-gradient="ocean" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #0066cc, #66b3ff);color:#001a33;font-weight:600;cursor:pointer;text-align:left">🌊 Ocean Blue</button>
+          <button class="gradient-option" data-gradient="forest" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #0d4f3c, #66d4a8);color:#001a0f;font-weight:600;cursor:pointer;text-align:left">🌲 Forest Green</button>
+          <button class="gradient-option" data-gradient="purple" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #6b2c91, #c084fc);color:#1a0d26;font-weight:600;cursor:pointer;text-align:left">💜 Purple Dream</button>
+          <button class="gradient-option" data-gradient="" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid var(--stroke);background:var(--glass);color:var(--ink);font-weight:600;cursor:pointer;text-align:left">⚪ Tắt Gradient</button>
+        </div>
+      </div>
+      <button id="themeToggle" class="pill pill-button" title="Dark/Light">🌓</button>
+      <button id="langToggle2" class="pill pill-button" title="VI / EN">VI/EN</button>
+      <div id="userChip" class="userchip" title=""></div>
+    </div>
+  </div>
+
+  <!-- COVER PAGE -->
+  <section id="cover" class="cover-page">
+    <div class="cover-card fade-enter">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <img id="coverLogo" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" alt="Logo" style="height:48px;width:auto;object-fit:contain;border-radius:8px" />
+          <strong id="coverTitle">[SPX] DAILY CHECKLIST v2.5 </strong>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div id="coverGradientThemeSelector" style="position:relative;display:inline-block">
+            <button id="coverGradientThemeBtn" class="pill pill-button" title="Chọn màu gradient">🎨</button>
+            <div id="coverGradientThemeMenu" class="glass" style="position:absolute;top:100%;right:0;margin-top:8px;padding:12px;border-radius:12px;min-width:200px;display:none;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.2)">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">Gradient Themes 2025</div>
+              <button class="gradient-option" data-gradient="sunset" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #ff6a00, #ffb366);color:#1a0d00;font-weight:600;cursor:pointer;text-align:left">🌅 Sunset Orange</button>
+              <button class="gradient-option" data-gradient="ocean" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #0066cc, #66b3ff);color:#001a33;font-weight:600;cursor:pointer;text-align:left">🌊 Ocean Blue</button>
+              <button class="gradient-option" data-gradient="forest" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #0d4f3c, #66d4a8);color:#001a0f;font-weight:600;cursor:pointer;text-align:left">🌲 Forest Green</button>
+              <button class="gradient-option" data-gradient="purple" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;border:none;background:linear-gradient(135deg, #6b2c91, #c084fc);color:#1a0d26;font-weight:600;cursor:pointer;text-align:left">💜 Purple Dream</button>
+              <button class="gradient-option" data-gradient="" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid var(--stroke);background:var(--glass);color:var(--ink);font-weight:600;cursor:pointer;text-align:left">⚪ Tắt Gradient</button>
+            </div>
+          </div>
+          <button id="langToggle" class="pill pill-button" title="VI / EN">VI/EN</button>
+          <button id="coverTheme" class="pill pill-button" title="Dark/Light">🌓</button>
+        </div>
+      </div>
+
+      <h2 class="cover-title" id="i18n-cover-title">Quản Lý Checklist Hàng Ngày</h2>
+      <div class="cele-banner" id="i18n-2010" style="display:none">🎉 CHÀO MỪNG NGÀY 20.10</div>
+      <p class="cover-sub" id="i18n-cover-sub">Theo dõi tiến độ công việc, quản lý hub, và cộng tác nhóm theo thời gian thực với phân quyền bảo mật.</p>
+
+      <div class="features">
+        <div class="feat">
+          <div class="chip" style="margin-bottom:6px">🔐 Xác Thực</div>
+          <div class="t">Google Account nội bộ SPX với phân quyền theo Hub</div>
+        </div>
+        <div class="feat">
+          <div class="chip" style="margin-bottom:6px">✅ Quản Lý Task</div>
+          <div class="t">Tạo, chỉnh sửa, SLA tracking & phê duyệt</div>
+        </div>
+        <div class="feat">
+          <div class="chip" style="margin-bottom:6px">📊 Analytics</div>
+          <div class="t">Báo cáo và audit log đầy đủ</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:center;align-items:center;margin-top:8px">
+        <button id="enterAppBtn" class="btn btn-primary">Chào Mừng Bạn Đã Quay Lại</button>
+        <span class="chip">CHÍNH THỨC</span>
+      </div>
+
+      <div id="holidayGreeting" style="margin-top:14px;color:var(--primary);font-size:13px;font-weight:600;display:none"></div>
+
+      <div style="margin-top:14px;color:var(--muted);font-size:12px">
+        SPX Express TVH © 2025 — Daily Checklist Management System with Security
+      </div>
+    </div>
+  </section>
+
+  <!-- APP CONTAINER (ẩn ban đầu) -->
+  <div class="app" id="main-content" role="main" style="display:none">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar glass">
+      <div class="subheader">
+        <div class="timestamp" id="now">—</div>
+        <div style="display:flex; gap:8px; align-items:center">
+          <div id="onlineBadge" class="pill" title="Xem người đang online">
+            <span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--green)"></span>
+            <span id="i18n-online">Online</span> • <b id="onlineCount">0</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- HUB SELECTOR -->
+      <div class="group glass" id="grpHub">
+        <div class="label" id="i18n-hub-label">Đang xem tiến độ Hub</div>
+        <div class="control"><select id="hub"></select></div>
+      </div>
+
+      <!-- DATE SELECTOR -->
+      <div class="group glass" id="grpDate">
+        <div class="label" id="i18n-date-label">Ngày checklist</div>
+        <div class="control"><input id="date" type="date" /></div>
+      </div>
+
+
+      <!-- KPI -->
+      <div class="group glass" id="grpProgress">
+        <div class="label">Tiến độ hôm nay</div>
+        <div class="kpi">
+          <div class="tile">
+            <div class="n" id="done">0</div>
+            <div class="t">Hoàn thành</div>
+          </div>
+          <div class="tile" id="unfinishedTile" style="cursor:pointer" title="Click để xem tasks chưa hoàn thành">
+            <div class="n" id="todo">0</div>
+            <div class="t">Chưa hoàn thành</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="group glass">
+        <button id="showUnfinishedBtn" class="btn btn-soft" style="width:100%">
+          📌 Xem Tasks Chưa Hoàn Thành
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="check">📋 Checklist</button>
+        <button class="tab" data-tab="report">📊 Báo Cáo</button>
+        <button class="tab" data-tab="unfinished">📌 Chưa Hoàn Thành</button>
+        <button class="tab" data-tab="admin" id="adminTab" style="display:none">⚙️ Admin</button>
+        <button class="tab" data-tab="qa">❓ Q&A</button>
+        <button class="tab" data-tab="about">ℹ️ Thông Tin</button>
+      </div>
+
+      <!-- TAB CONTENT CONTAINER -->
+      <div class="work glass" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+        
+        <!-- TAB: CHECKLIST -->
+        <div class="content active" data-content="check" id="checkTab">
+          <div id="vViewport" style="position:relative;flex:1;overflow:auto;min-height:0">
+            <div id="vSpacer" style="position:relative"></div>
+            <div id="vRows"></div>
+          </div>
+          
+          <div style="padding:12px;display:flex;gap:8px;justify-content:center;border-top:1px solid var(--stroke);flex-wrap:wrap">
+            <button id="bulkSelectBtn" class="btn btn-soft" style="display:none">☑️ Chọn nhiều</button>
+            <button id="bulkEditBtn" class="btn btn-soft" style="display:none">✏️ Sửa hàng loạt</button>
+            <button id="bulkDeleteBtn" class="btn btn-soft" style="display:none">🗑️ Xóa hàng loạt</button>
+            <button id="bulkExportBtn" class="btn btn-soft" style="display:none">📗 Export</button>
+            <button id="bulkCancelBtn" class="btn btn-soft" style="display:none">✖️ Hủy</button>
+            <button id="addAdHoc" class="btn btn-soft">+ Task tức thì</button>
+            <button id="saveBtn" class="btn btn-primary">💾 Lưu</button>
+          </div>
+        </div>
+
+        <!-- TAB: BÁO CÁO -->
+        <div class="content" data-content="report" style="padding:20px">
+          <h2>📊 Báo Cáo Tổng Hợp</h2>
+          
+          <!-- Compact Filter Bar - All in One Line -->
+          <div class="glass" style="padding:16px;border-radius:12px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <!-- Hub Selector -->
+              <div style="flex:0 0 auto;min-width:200px">
+                <select id="reportHub" class="control" style="margin:0;width:100%">
+                  <option value="ALL">🌐 Tất cả Hubs</option>
+                </select>
+              </div>
+              
+              <!-- Time Range Buttons -->
+              <div style="display:flex;gap:6px;flex:0 0 auto" id="reportRange">
+                <button class="btn btn-soft" data-r="today" style="padding:8px 12px;font-size:13px">Hôm nay</button>
+                <button class="btn btn-soft" data-r="week" style="padding:8px 12px;font-size:13px">Tuần này</button>
+                <button class="btn btn-soft active" data-r="month" style="padding:8px 12px;font-size:13px">Tháng này</button>
+                <button class="btn btn-soft" data-r="custom" style="padding:8px 12px;font-size:13px">Tùy chỉnh</button>
+              </div>
+              
+              <!-- Date Pickers (Default) -->
+              <div style="flex:0 0 auto;display:none" id="reportDateDefault">
+                <input id="reportDate" type="date" class="control" style="margin:0;padding:8px 12px;font-size:13px" />
+              </div>
+              
+              <!-- Custom Date Range (shown when "Tùy chỉnh" is selected) -->
+              <div style="flex:0 0 auto;display:none;gap:8px;align-items:center" id="reportDateCustom">
+                <label style="font-size:12px;color:var(--muted);white-space:nowrap">Từ:</label>
+                <input id="reportDateStart" type="date" class="control" style="margin:0;padding:8px 12px;font-size:13px" />
+                <label style="font-size:12px;color:var(--muted);white-space:nowrap">Đến:</label>
+                <input id="reportDateEnd" type="date" class="control" style="margin:0;padding:8px 12px;font-size:13px" />
+              </div>
+              
+              <!-- Action Buttons -->
+              <div style="display:flex;gap:8px;flex:0 0 auto;margin-left:auto">
+                <button id="refreshReport" class="btn btn-primary" style="padding:8px 16px;font-size:13px">🔄 Tải báo cáo</button>
+                <button id="exportExcel" class="btn btn-soft" style="padding:8px 12px;font-size:13px">📗 Excel</button>
+                <button id="exportPDF" class="btn btn-soft" style="padding:8px 12px;font-size:13px">📕 PDF</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="reportContent" class="scrollbox" style="min-height:400px">
+            <!-- Empty State (Initial) -->
+            <div id="reportEmptyState" class="glass" style="padding:60px 20px;text-align:center;border-radius:16px;margin:20px 0">
+              <div style="font-size:64px;margin-bottom:16px">📊</div>
+              <h3 style="margin:0 0 8px;font-size:20px;color:var(--ink)">Sẵn sàng tạo báo cáo</h3>
+              <p style="margin:0 0 24px;color:var(--muted);font-size:14px">Chọn Hub và khoảng thời gian, sau đó nhấn "Tải báo cáo" để xem dữ liệu</p>
+              <button id="quickLoadReport" class="btn btn-primary" style="padding:10px 24px">🚀 Tải báo cáo nhanh</button>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="reportLoadingState" style="display:none;padding:40px;text-align:center">
+              <div class="skeleton" style="height:200px;border-radius:12px;margin-bottom:20px"></div>
+              <div class="skeleton" style="height:300px;border-radius:12px;margin-bottom:20px"></div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+                <div class="skeleton" style="height:120px;border-radius:12px"></div>
+                <div class="skeleton" style="height:120px;border-radius:12px"></div>
+                <div class="skeleton" style="height:120px;border-radius:12px"></div>
+                <div class="skeleton" style="height:120px;border-radius:12px"></div>
+              </div>
+            </div>
+            
+            <!-- Dashboard Charts Container -->
+            <div id="reportCharts" style="display:none">
+              <!-- KPI Cards -->
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px" id="reportKPICards"></div>
+              
+              <!-- Charts Grid -->
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;margin-bottom:24px">
+                <!-- Task Completion Chart -->
+                <div class="glass" style="padding:16px;border-radius:12px;position:relative">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <h3 style="margin:0;font-size:15px;font-weight:600">📊 Tỷ Lệ Hoàn Thành</h3>
+                    <button class="btn-download-chart" data-chart-id="reportCompletionChart" data-chart-name="TyLeHoanThanh" style="padding:6px 12px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);border-radius:6px;cursor:pointer;transition:all 0.2s" title="Tải ảnh xuống">📥 Tải ảnh</button>
+                  </div>
+                  <canvas id="reportCompletionChart" style="max-height:280px"></canvas>
+                </div>
+                
+                <!-- Tasks by Category Chart -->
+                <div class="glass" style="padding:16px;border-radius:12px;position:relative">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <h3 style="margin:0;font-size:15px;font-weight:600">📋 Tasks Theo Danh Mục</h3>
+                    <button class="btn-download-chart" data-chart-id="reportCategoryChart" data-chart-name="TasksTheoDanhMuc" style="padding:6px 12px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);border-radius:6px;cursor:pointer;transition:all 0.2s" title="Tải ảnh xuống">📥 Tải ảnh</button>
+                  </div>
+                  <canvas id="reportCategoryChart" style="max-height:280px"></canvas>
+                </div>
+                
+                <!-- Daily Progress Chart -->
+                <div class="glass" style="padding:16px;border-radius:12px;grid-column:span 2;position:relative">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <h3 style="margin:0;font-size:15px;font-weight:600">📈 Xu Hướng Tiến Độ Hàng Ngày</h3>
+                    <button class="btn-download-chart" data-chart-id="reportDailyChart" data-chart-name="XuHuongTienDo" style="padding:6px 12px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);border-radius:6px;cursor:pointer;transition:all 0.2s" title="Tải ảnh xuống">📥 Tải ảnh</button>
+                  </div>
+                  <canvas id="reportDailyChart" style="max-height:280px"></canvas>
+                </div>
+                
+                <!-- Hub Comparison Chart (if multi-hub) -->
+                <div class="glass" style="padding:16px;border-radius:12px;grid-column:span 2;display:none;position:relative" id="reportHubChartContainer">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                    <h3 style="margin:0;font-size:15px;font-weight:600">🌐 So Sánh Giữa Các Hub</h3>
+                    <button class="btn-download-chart" data-chart-id="reportHubChart" data-chart-name="SoSanhCacHub" style="padding:6px 12px;font-size:12px;background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.3);border-radius:6px;cursor:pointer;transition:all 0.2s" title="Tải ảnh xuống">📥 Tải ảnh</button>
+                  </div>
+                  <canvas id="reportHubChart" style="max-height:280px"></canvas>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Data Tables Container -->
+            <div id="reportDataContainer"></div>
+          </div>
+        </div>
+
+        <!-- TAB: ADMIN -->
+        <div class="content" data-content="admin" style="padding:20px">
+          <h2>⚙️ Admin Panel</h2>
+          
+          <div class="section glass">
+            <h3>👥 Quản Lý Users</h3>
+            <div style="margin:12px 0">
+              <button id="addUser" class="btn btn-primary">+ Thêm User</button>
+              <button id="refreshUsers" class="btn btn-soft">🔄 Tải lại</button>
+            </div>
+            
+            <div class="scrollbox">
+              <table class="table" id="usersTable">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Hub</th>
+                    <th>Role</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr><td colspan="5">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section glass" style="margin-top:20px">
+            <h3>🏢 Quản Lý Hubs</h3>
+            <div id="hubsConfig">
+              <p class="hint">Hub configuration will be here</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: UNFINISHED TASKS -->
+        <div class="content" data-content="unfinished" style="padding:20px">
+          <h2>📌 Tasks Chưa Hoàn Thành</h2>
+          <div class="glass" style="padding:16px;border-radius:12px;margin-bottom:20px">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap">📅 Chọn ngày:</label>
+                <input id="unfinishedDate" type="date" class="control" style="padding:8px 12px;font-size:14px;min-width:160px" />
+              </div>
+              <div style="display:flex;gap:8px;margin-left:auto">
+                <button id="unfinishedRefresh" class="btn btn-primary" style="padding:8px 16px;font-size:14px">🔄 Tải lại</button>
+                <button id="unfinishedExport" class="btn btn-soft" style="padding:8px 16px;font-size:14px">📗 Export</button>
+              </div>
+            </div>
+            <div style="margin-top:12px;font-size:13px;color:var(--muted)">
+              <span id="unfinishedDateDisplay">Đang hiển thị tasks chưa hoàn thành của ngày hôm nay (D0)</span>
+            </div>
+          </div>
+          <div id="unfinishedList" class="scrollbox"></div>
+        </div>
+
+        <!-- TAB: Q&A MODULE -->
+        <div class="content" data-content="qa" style="padding:20px">
+          <h2>❓ Hỏi & Đáp (Q&A)</h2>
+          
+          <!-- Submit Question Form -->
+          <div class="glass" style="padding:20px;border-radius:12px;margin-bottom:20px">
+            <h3 style="margin:0 0 16px;font-size:18px;font-weight:600">💬 Đặt Câu Hỏi Mới</h3>
+            <div style="display:grid;grid-template-columns:200px 1fr;gap:12px;margin-bottom:12px;align-items:end">
+              <div>
+                <label style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Danh mục</label>
+                <select id="qaCategory" class="control" style="width:100%">
+                  <option value="Thao tác">🔧 Thao tác</option>
+                  <option value="Giao diện">🎨 Giao diện</option>
+                  <option value="Nội dung">📝 Nội dung</option>
+                  <option value="Khác">❓ Khác</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;color:var(--muted);margin-bottom:6px">Câu hỏi</label>
+                <textarea id="qaQuestion" rows="2" placeholder="Nhập câu hỏi của bạn..." class="control" style="width:100%;resize:vertical"></textarea>
+              </div>
+            </div>
+            <button id="qaSubmit" class="btn btn-primary" style="padding:10px 20px">📤 Gửi Câu Hỏi</button>
+          </div>
+
+          <!-- Filter & View Questions -->
+          <div class="glass" style="padding:20px;border-radius:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <h3 style="margin:0;font-size:18px;font-weight:600">📋 Danh Sách Câu Hỏi</h3>
+              <button id="qaRefresh" class="btn btn-soft" style="padding:8px 12px">🔄 Tải lại</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+              <button class="btn btn-soft active" data-qa-filter="all">📋 Tất cả</button>
+              <button class="btn btn-soft" data-qa-filter="Thao tác">🔧 Thao tác</button>
+              <button class="btn btn-soft" data-qa-filter="Giao diện">🎨 Giao diện</button>
+              <button class="btn btn-soft" data-qa-filter="Nội dung">📝 Nội dung</button>
+              <button class="btn btn-soft" data-qa-filter="Khác">❓ Khác</button>
+              <button class="btn btn-soft" data-qa-filter="pending" style="margin-left:auto">⏳ Chờ trả lời</button>
+              <button class="btn btn-soft" data-qa-filter="answered">✅ Đã trả lời</button>
+            </div>
+            <div id="qaList" class="scrollbox" style="max-height:500px"></div>
+          </div>
+        </div>
+
+        <!-- TAB: ABOUT / THÔNG TIN -->
+        <div class="content" data-content="about" style="padding:20px;overflow:auto">
+          <h2 style="text-align:center;margin-bottom:24px">ℹ️ Về [SPX] DAILY CHECKLIST</h2>
+          
+          <div class="section glass" style="margin-bottom:20px">
+            <h3>📖 Giới Thiệu</h3>
+            <p><strong>[SPX] DAILY CHECKLIST v2.5 </strong> là hệ thống quản lý công việc hàng ngày được thiết kế riêng cho <strong>SPX Express TVH</strong>.</p>
+            <p>Hệ thống giúp theo dõi tiến độ công việc theo từng Hub, quản lý SLA (Service Level Agreement), và theo dõi hoạt động của nhân viên một cách chính xác và hiệu quả.</p>
+            
+            <div style="margin-top:16px;padding:12px;background:rgba(255,106,0,0.1);border-left:4px solid var(--orange);border-radius:8px">
+              <strong>🎯 Mục tiêu:</strong> Tăng cường quản lý chất lượng, giảm thiểu sai sót, và nâng cao hiệu suất làm việc của đội ngũ SPX Express TVH.
+            </div>
+          </div>
+
+          <div class="section glass" style="margin-bottom:20px">
+            <h3>✨ Tính Năng Chính</h3>
+            <ul style="line-height:1.8">
+              <li><strong>📋 Quản Lý Checklist:</strong> Tạo và theo dõi tasks hàng ngày theo từng Hub</li>
+              <li><strong>⏰ SLA Tracking:</strong> Giám sát thời gian hoàn thành công việc, cảnh báo trễ hạn</li>
+              <li><strong>📊 Báo Cáo & Analytics:</strong> Thống kê hiệu suất, xuất Excel/PDF</li>
+              <li><strong>🔍 Audit Log:</strong> Theo dõi lịch sử truy cập và thao tác</li>
+              <li><strong>👥 Quản Lý Users:</strong> Phân quyền theo Hub và Role (Admin/User)</li>
+              <li><strong>📝 Ghi Chú:</strong> Lưu trữ ghi chú quan trọng theo ngày</li>
+              <li><strong>📅 Google Calendar Sync:</strong> Đồng bộ SLA với Google Calendar</li>
+              <li><strong>🔒 Bảo Mật:</strong> Xác thực Google Account nội bộ, phân quyền Hub-based</li>
+            </ul>
+          </div>
+
+          <div class="section glass" style="margin-bottom:20px">
+            <h3>📚 Hướng Dẫn Sử Dụng</h3>
+            
+            <h4>1️⃣ Đăng Nhập</h4>
+            <p>Sử dụng Google Account nội bộ SPX để đăng nhập. Chỉ những account được Admin thêm vào hệ thống mới có quyền truy cập.</p>
+            
+            <h4>2️⃣ Checklist Hàng Ngày</h4>
+            <ol style="line-height:1.8">
+              <li>Chọn <strong>Hub</strong> và <strong>Ngày</strong> cần xem</li>
+              <li>Hệ thống tự động load danh sách tasks từ template</li>
+              <li>Tích ✅ vào checkbox khi hoàn thành task</li>
+              <li>Click <strong>💾 Lưu</strong> để save tiến độ</li>
+              <li>Tasks có SLA sẽ tự động đồng bộ lên Google Calendar</li>
+            </ol>
+            
+            <h4>3️⃣ Xem Báo Cáo</h4>
+            <ol style="line-height:1.8">
+              <li>Chuyển sang tab <strong>📊 Báo Cáo</strong></li>
+              <li>Chọn Hub và khoảng thời gian</li>
+              <li>Xem thống kê: completion rate, SLA performance, category breakdown</li>
+              <li>Xuất ra Excel hoặc PDF nếu cần</li>
+            </ol>
+            
+            <h4>4️⃣ Admin Functions (Dành cho Admin)</h4>
+            <ol style="line-height:1.8">
+              <li>Tab <strong>⚙️ Admin</strong> chỉ hiện với users có role "admin"</li>
+              <li>Thêm/sửa/xóa users và phân quyền Hub</li>
+              <li>Quản lý template tasks cho từng Hub</li>
+            </ol>
+          </div>
+
+          <div class="section glass" style="margin-bottom:20px">
+            <h3>💡 Tips & Tricks</h3>
+            <ul style="line-height:1.8">
+              <li>Sử dụng <strong>Tìm kiếm</strong> để nhanh chóng tìm tasks cần làm</li>
+              <li>Lọc theo <strong>Nhóm</strong> (Đầu Ca, Trong Ca, Cuối Ca) để tập trung công việc</li>
+              <li>Check <strong>🔍 Truy Cập</strong> để xem lịch sử thao tác của bạn</li>
+              <li>Theme tối/sáng: Click nút <strong>🌓</strong> ở góc phải</li>
+              <li>Đổi ngôn ngữ: Click <strong>VI/EN</strong> để chuyển tiếng Việt/Anh</li>
+            </ul>
+          </div>
+
+          <div class="section glass" style="text-align:center;background:linear-gradient(135deg,rgba(255,106,0,0.1),rgba(255,179,0,0.1));padding:30px">
+            <h3 style="color:var(--orange)">🙏 Lời Cảm Ơn</h3>
+            <p style="font-size:16px;margin:16px 0">Cảm ơn toàn thể đội ngũ <strong>SPX Express TVH</strong> đã tin tưởng và sử dụng hệ thống.</p>
+            <p>Mọi góp ý và đề xuất cải tiến, vui lòng liên hệ IT Department.</p>
+            <div style="margin-top:24px;font-size:14px;color:var(--muted)">
+              <p><strong>SPX Express TVH</strong> © 2025</p>
+              <p>Daily Checklist Management System - Phiên Bản CHÍNH THỨC v2.5 </p>
+              <p style="margin-top:8px">Developed with ❤️ for SPX Express TVH Team</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast" style="position:fixed;right:14px;bottom:14px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end"></div>
+
+  <?!= include('script'); ?>
+  
+  <!-- Floating Chat Button (Modern Trend Style) -->
+  <div id="floatingChatButton" style="position:fixed;bottom:24px;right:24px;z-index:9998;cursor:pointer;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1)">
+    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);box-shadow:0 8px 24px rgba(102,126,234,0.4);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;position:relative">
+      <span id="chatIcon">💬</span>
+      <span id="chatBadge" style="position:absolute;top:-4px;right:-4px;width:20px;height:20px;background:#ef4444;border-radius:50%;display:none;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;border:2px solid #fff">0</span>
+    </div>
+  </div>
+  
+  <!-- Chat Widget (Hidden by default) -->
+  <div id="chatWidget" style="position:fixed;bottom:100px;right:24px;width:380px;max-width:calc(100vw - 48px);height:500px;max-height:calc(100vh - 140px);background:var(--glass-strong);border:1px solid var(--stroke);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:none;flex-direction:column;z-index:9999;overflow:hidden;backdrop-filter:blur(20px)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);display:flex;align-items:center;justify-content:center;font-size:20px">💬</div>
+        <div>
+          <div style="font-weight:600;font-size:15px;color:var(--ink)">Chat Nội Bộ</div>
+          <div id="chatWidgetOnline" style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px">
+            <span style="width:6px;height:6px;background:#10b981;border-radius:50%"></span>
+            <span id="chatWidgetOnlineCount">0</span> online
+          </div>
+        </div>
+      </div>
+      <button id="chatWidgetClose" style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted);transition:all 0.2s" title="Đóng">✕</button>
+    </div>
+    
+    <div id="chatWidgetMessages" class="scrollbox" style="flex:1;padding:16px;overflow-y:auto;background:rgba(0,0,0,0.02)"></div>
+    
+    <div style="padding:16px;border-top:1px solid var(--stroke);background:rgba(0,0,0,0.02)">
+      <div style="display:flex;gap:8px">
+        <input id="chatWidgetInput" type="text" placeholder="Nhập tin nhắn..." class="control" style="flex:1;padding:10px 16px;font-size:14px" />
+        <button id="chatWidgetSend" class="btn btn-primary" style="padding:10px 20px;min-width:auto">📤</button>
+      </div>
+      <div id="chatWidgetOnlineUsers" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--stroke);display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+  </div>
+</body>
+</html>
