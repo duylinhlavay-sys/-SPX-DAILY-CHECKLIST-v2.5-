@@ -545,6 +545,11 @@
   <!-- TOAST CONTAINER -->
   <div id="toast" style="position:fixed;right:14px;bottom:14px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end"></div>
 
+  <!-- Load modules in order: config → utils → error-handler → cache-manager → script -->
+  <?!= include('config'); ?>
+  <?!= include('utils'); ?>
+  <?!= include('error-handler'); ?>
+  <?!= include('cache-manager'); ?>
   <?!= include('script'); ?>
   
   <!-- Floating Chat Button (Modern Trend Style) -->

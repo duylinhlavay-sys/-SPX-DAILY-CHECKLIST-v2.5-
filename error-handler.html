@@ -1,0 +1,389 @@
+<script>
+/* ====== [SPX] DAILY CHECKLIST - CENTRALIZED ERROR HANDLER ====== */
+/* File: error-handler.html - Unified error handling and logging */
+
+(function() {
+  'use strict';
+
+  /**
+   * Centralized Error Handler
+   * Provides consistent error handling, logging, and user feedback
+   */
+  window.ErrorHandler = {
+    /* ====== ERROR CATEGORIES ====== */
+    ErrorType: {
+      NETWORK: 'network',
+      PERMISSION: 'permission',
+      AUTHENTICATION: 'authentication',
+      VALIDATION: 'validation',
+      QUOTA: 'quota',
+      NOT_FOUND: 'not_found',
+      SERVER: 'server',
+      CLIENT: 'client',
+      UNKNOWN: 'unknown'
+    },
+
+    /* ====== ERROR MESSAGES ====== */
+    messages: {
+      // Vietnamese messages
+      vi: {
+        network: 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.',
+        permission: 'Bạn không có quyền thực hiện thao tác này. Vui lòng liên hệ admin.',
+        authentication: 'Phiên đăng nhập đã hết hạn. Vui lòng làm mới trang.',
+        validation: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
+        quota: 'Đã vượt quá giới hạn. Vui lòng thử lại sau.',
+        not_found: 'Không tìm thấy dữ liệu yêu cầu.',
+        server: 'Lỗi server. Vui lòng thử lại sau.',
+        client: 'Lỗi ứng dụng. Vui lòng làm mới trang.',
+        unknown: 'Đã xảy ra lỗi không xác định.',
+
+        // Action-specific messages
+        whoami: 'Không thể xác thực người dùng. Vui lòng đăng nhập lại.',
+        loadTasks: 'Không thể tải tasks. Vui lòng thử lại.',
+        saveTasks: 'Không thể lưu tasks. Vui lòng thử lại.',
+        saveUser: 'Không thể lưu user. Vui lòng kiểm tra thông tin và thử lại.',
+        deleteUser: 'Không thể xóa user. Vui lòng thử lại.',
+        loadReport: 'Không thể tải báo cáo. Vui lòng thử lại.',
+        exportData: 'Không thể xuất dữ liệu. Vui lòng thử lại.'
+      },
+
+      // English messages
+      en: {
+        network: 'Network error. Please check your connection and try again.',
+        permission: 'You do not have permission to perform this action. Please contact admin.',
+        authentication: 'Session expired. Please refresh the page.',
+        validation: 'Invalid data. Please check and try again.',
+        quota: 'Quota exceeded. Please try again later.',
+        not_found: 'Requested data not found.',
+        server: 'Server error. Please try again later.',
+        client: 'Application error. Please refresh the page.',
+        unknown: 'An unknown error occurred.',
+
+        whoami: 'Cannot authenticate user. Please log in again.',
+        loadTasks: 'Cannot load tasks. Please try again.',
+        saveTasks: 'Cannot save tasks. Please try again.',
+        saveUser: 'Cannot save user. Please check the information and try again.',
+        deleteUser: 'Cannot delete user. Please try again.',
+        loadReport: 'Cannot load report. Please try again.',
+        exportData: 'Cannot export data. Please try again.'
+      }
+    },
+
+    /* ====== ERROR STATISTICS ====== */
+    stats: {
+      total: 0,
+      byType: {},
+      byAction: {},
+      lastError: null
+    },
+
+    /* ====== CORE ERROR HANDLING ====== */
+
+    /**
+     * Handle error with logging and user feedback
+     * @param {Error|string} error - Error object or message
+     * @param {string} context - Context/action where error occurred
+     * @param {Object} options - Additional options
+     * @return {Object} Processed error info
+     */
+    handle: function(error, context, options) {
+      options = options || {};
+
+      // Process error
+      var errorInfo = this._processError(error, context);
+
+      // Log error
+      this._logError(errorInfo, options);
+
+      // Update statistics
+      this._updateStats(errorInfo);
+
+      // Show user feedback (unless disabled)
+      if (!options.silent) {
+        this._showUserFeedback(errorInfo, options);
+      }
+
+      // Track error (for monitoring)
+      if (options.track !== false) {
+        this._trackError(errorInfo);
+      }
+
+      return errorInfo;
+    },
+
+    /**
+     * Process error into structured format
+     * @private
+     */
+    _processError: function(error, context) {
+      var errorStr = '';
+      var errorType = this.ErrorType.UNKNOWN;
+      var originalError = error;
+
+      // Extract error string
+      if (error instanceof Error) {
+        errorStr = error.message || error.toString();
+      } else if (typeof error === 'string') {
+        errorStr = error;
+      } else if (error && error.error) {
+        errorStr = error.error;
+      } else {
+        errorStr = String(error);
+      }
+
+      errorStr = errorStr.toLowerCase();
+
+      // Categorize error
+      if (errorStr.indexOf('network') !== -1 || errorStr.indexOf('timeout') !== -1 || errorStr.indexOf('fetch') !== -1) {
+        errorType = this.ErrorType.NETWORK;
+      } else if (errorStr.indexOf('permission') !== -1 || errorStr.indexOf('denied') !== -1 || errorStr.indexOf('forbidden') !== -1) {
+        errorType = this.ErrorType.PERMISSION;
+      } else if (errorStr.indexOf('not authenticated') !== -1 || errorStr.indexOf('authentication') !== -1 || errorStr.indexOf('unauthorized') !== -1) {
+        errorType = this.ErrorType.AUTHENTICATION;
+      } else if (errorStr.indexOf('validation') !== -1 || errorStr.indexOf('invalid') !== -1) {
+        errorType = this.ErrorType.VALIDATION;
+      } else if (errorStr.indexOf('quota') !== -1 || errorStr.indexOf('limit') !== -1) {
+        errorType = this.ErrorType.QUOTA;
+      } else if (errorStr.indexOf('not found') !== -1 || errorStr.indexOf('404') !== -1) {
+        errorType = this.ErrorType.NOT_FOUND;
+      } else if (errorStr.indexOf('server') !== -1 || errorStr.indexOf('500') !== -1 || errorStr.indexOf('503') !== -1) {
+        errorType = this.ErrorType.SERVER;
+      }
+
+      return {
+        type: errorType,
+        context: context || 'unknown',
+        message: errorStr,
+        originalError: originalError,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      };
+    },
+
+    /**
+     * Log error to appropriate output
+     * @private
+     */
+    _logError: function(errorInfo, options) {
+      var logLevel = options.logLevel || 'error';
+      var logger = window.logger || console;
+
+      var logMessage = '[ErrorHandler] ' +
+        errorInfo.type.toUpperCase() + ' in ' + errorInfo.context +
+        ': ' + errorInfo.message;
+
+      // Log based on severity
+      if (logLevel === 'warn') {
+        logger.warn(logMessage, errorInfo);
+      } else if (logLevel === 'info') {
+        logger.info(logMessage, errorInfo);
+      } else {
+        logger.error(logMessage, errorInfo);
+      }
+    },
+
+    /**
+     * Update error statistics
+     * @private
+     */
+    _updateStats: function(errorInfo) {
+      this.stats.total++;
+      this.stats.byType[errorInfo.type] = (this.stats.byType[errorInfo.type] || 0) + 1;
+      this.stats.byAction[errorInfo.context] = (this.stats.byAction[errorInfo.context] || 0) + 1;
+      this.stats.lastError = errorInfo;
+    },
+
+    /**
+     * Show user-friendly feedback
+     * @private
+     */
+    _showUserFeedback: function(errorInfo, options) {
+      var lang = localStorage.getItem('spx_lang') || 'vi';
+      var userMessage = this._getUserMessage(errorInfo, lang, options);
+
+      // Show toast notification
+      if (window.toast) {
+        var toastType = options.toastType || 'err';
+        var duration = options.duration || 5000;
+
+        window.toast(userMessage, toastType, {
+          duration: duration,
+          closable: true
+        });
+      } else {
+        // Fallback to alert if toast not available
+        console.error(userMessage);
+      }
+    },
+
+    /**
+     * Get user-friendly error message
+     * @private
+     */
+    _getUserMessage: function(errorInfo, lang, options) {
+      var messages = this.messages[lang] || this.messages.vi;
+
+      // Check for action-specific message
+      if (messages[errorInfo.context]) {
+        return messages[errorInfo.context];
+      }
+
+      // Check for type-specific message
+      if (messages[errorInfo.type]) {
+        return messages[errorInfo.type];
+      }
+
+      // Default message
+      if (options && options.customMessage) {
+        return options.customMessage;
+      }
+
+      return messages.unknown + ' (' + errorInfo.message + ')';
+    },
+
+    /**
+     * Track error for monitoring (can be extended to send to monitoring service)
+     * @private
+     */
+    _trackError: function(errorInfo) {
+      // Store in localStorage for debugging
+      try {
+        var errorLog = JSON.parse(localStorage.getItem('spx_error_log') || '[]');
+        errorLog.push(errorInfo);
+
+        // Keep only last 50 errors
+        if (errorLog.length > 50) {
+          errorLog = errorLog.slice(-50);
+        }
+
+        localStorage.setItem('spx_error_log', JSON.stringify(errorLog));
+      } catch (e) {
+        console.warn('[ErrorHandler] Cannot save error log:', e);
+      }
+
+      // TODO: Send to monitoring service (e.g., Sentry, LogRocket, etc.)
+      // if (window.Sentry) {
+      //   Sentry.captureException(errorInfo.originalError, {
+      //     tags: {
+      //       type: errorInfo.type,
+      //       context: errorInfo.context
+      //     }
+      //   });
+      // }
+    },
+
+    /* ====== RETRY LOGIC ====== */
+
+    /**
+     * Retry function with exponential backoff
+     * @param {Function} fn - Function to retry
+     * @param {number} maxRetries - Maximum retry attempts
+     * @param {number} delay - Initial delay in ms
+     * @return {Promise} Promise resolving to function result
+     */
+    retry: function(fn, maxRetries, delay) {
+      maxRetries = maxRetries || 3;
+      delay = delay || 1000;
+
+      var attempt = 0;
+
+      var retryFn = function() {
+        return Promise.resolve(fn()).catch(function(error) {
+          attempt++;
+
+          if (attempt >= maxRetries) {
+            throw error;
+          }
+
+          var backoffDelay = delay * Math.pow(2, attempt - 1);
+
+          if (window.logger) {
+            window.logger.log('[ErrorHandler] Retry attempt ' + attempt + ' after ' + backoffDelay + 'ms');
+          }
+
+          return new Promise(function(resolve) {
+            setTimeout(function() {
+              resolve(retryFn());
+            }, backoffDelay);
+          });
+        });
+      };
+
+      return retryFn();
+    },
+
+    /* ====== UTILITY METHODS ====== */
+
+    /**
+     * Get error statistics
+     * @return {Object} Error statistics
+     */
+    getStats: function() {
+      return {
+        total: this.stats.total,
+        byType: Object.assign({}, this.stats.byType),
+        byAction: Object.assign({}, this.stats.byAction),
+        lastError: this.stats.lastError
+      };
+    },
+
+    /**
+     * Reset error statistics
+     */
+    resetStats: function() {
+      this.stats = {
+        total: 0,
+        byType: {},
+        byAction: {},
+        lastError: null
+      };
+    },
+
+    /**
+     * Get error log
+     * @return {Array} Array of error entries
+     */
+    getErrorLog: function() {
+      try {
+        return JSON.parse(localStorage.getItem('spx_error_log') || '[]');
+      } catch (e) {
+        return [];
+      }
+    },
+
+    /**
+     * Clear error log
+     */
+    clearErrorLog: function() {
+      try {
+        localStorage.removeItem('spx_error_log');
+      } catch (e) {
+        console.warn('[ErrorHandler] Cannot clear error log:', e);
+      }
+    }
+  };
+
+  /* ====== GLOBAL ERROR HANDLERS ====== */
+
+  // Handle uncaught errors
+  window.addEventListener('error', function(event) {
+    window.ErrorHandler.handle(event.error || event.message, 'uncaught', {
+      silent: false,
+      track: true
+    });
+  });
+
+  // Handle unhandled promise rejections
+  window.addEventListener('unhandledrejection', function(event) {
+    window.ErrorHandler.handle(event.reason, 'unhandled_promise', {
+      silent: false,
+      track: true
+    });
+  });
+
+  if (window.logger) {
+    window.logger.log('[ErrorHandler] Module loaded');
+  }
+})();
+</script>

@@ -6,18 +6,18 @@
   'use strict';
 
   /* ====== DOM HELPERS ====== */
-  
+
   // jQuery-like selector (lightweight)
   window.$ = function(selector) {
     return document.querySelector(selector);
   };
-  
+
   window.$$ = function(selector) {
     return document.querySelectorAll(selector);
   };
-  
+
   /* ====== STRING UTILITIES ====== */
-  
+
   // HTML escape utility
   window.esc = function(text) {
     if (!text) return '';
@@ -25,25 +25,25 @@
     div.textContent = text;
     return div.innerHTML;
   };
-  
+
   // Format date string
   window.todayStr = function() {
     return new Date().toISOString().slice(0, 10);
   };
-  
+
   // Format storage key
   window.storageKey = function(hub, date) {
     return 'tasks_' + hub + '_' + date;
   };
-  
+
   /* ====== DATE UTILITIES ====== */
-  
+
   window.DateUtils = {
     // Parse date string to Date object
     parseDate: function(dateStr) {
       return new Date(dateStr + 'T00:00:00');
     },
-    
+
     // Format date for display
     formatDate: function(date, locale) {
       locale = locale || 'vi-VN';
@@ -53,18 +53,18 @@
         day: '2-digit'
       });
     },
-    
+
     // Format datetime for display
     formatDateTime: function(date, locale) {
       locale = locale || 'vi-VN';
       return new Date(date).toLocaleString(locale);
     },
-    
+
     // Get date range (start and end dates)
     getDateRange: function(range, customStart, customEnd) {
       var today = new Date();
       var start, end;
-      
+
       switch(range) {
         case 'today':
           start = today;
@@ -88,16 +88,16 @@
           start = today;
           end = today;
       }
-      
+
       return {
         start: start ? start.toISOString().slice(0, 10) : todayStr(),
         end: end ? end.toISOString().slice(0, 10) : todayStr()
       };
     }
   };
-  
+
   /* ====== ARRAY UTILITIES ====== */
-  
+
   window.ArrayUtils = {
     // Group array by key
     groupBy: function(array, key) {
@@ -113,7 +113,7 @@
         return groups;
       }, {});
     },
-    
+
     // Sort array by key
     sortBy: function(array, key, descending) {
       // Safety check: ensure array is valid
@@ -124,13 +124,13 @@
       return array.slice().sort(function(a, b) {
         var aVal = typeof key === 'function' ? key(a) : a[key];
         var bVal = typeof key === 'function' ? key(b) : b[key];
-        
+
         if (aVal < bVal) return descending ? 1 : -1;
         if (aVal > bVal) return descending ? -1 : 1;
         return 0;
       });
     },
-    
+
     // Unique array values
     unique: function(array, key) {
       // Safety check: ensure array is valid
@@ -147,9 +147,9 @@
       });
     }
   };
-  
+
   /* ====== OBJECT UTILITIES ====== */
-  
+
   window.ObjectUtils = {
     // Deep clone object
     clone: function(obj) {
@@ -165,7 +165,7 @@
         return null;
       }
     },
-    
+
     // Merge objects
     merge: function(target, source) {
       for (var key in source) {
@@ -175,21 +175,21 @@
       }
       return target;
     },
-    
+
     // Check if object is empty
     isEmpty: function(obj) {
       return !obj || Object.keys(obj).length === 0;
     }
   };
-  
+
   /* ====== VALIDATION UTILITIES ====== */
-  
+
   window.Validation = {
     // Validate email
     isEmail: function(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     },
-    
+
     // Validate URL
     isUrl: function(url) {
       try {
@@ -199,20 +199,20 @@
         return /^https?:\/\/.+/.test(url);
       }
     },
-    
+
     // Validate date string (YYYY-MM-DD)
     isDate: function(dateStr) {
       return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
     },
-    
+
     // Validate SLA format (HH:MM)
     isSLA: function(sla) {
       return /^\d{1,2}:\d{2}$/.test(sla);
     }
   };
-  
+
   /* ====== DEBOUNCE & THROTTLE ====== */
-  
+
   // Debounce function
   window.debounce = function(func, wait) {
     var timeout;
@@ -225,7 +225,7 @@
       }, wait);
     };
   };
-  
+
   // Throttle function
   window.throttle = function(func, limit) {
     var inThrottle;
@@ -241,9 +241,9 @@
       }
     };
   };
-  
+
   /* ====== STORAGE UTILITIES ====== */
-  
+
   window.StorageUtils = {
     // Safe localStorage get
     get: function(key, defaultValue) {
@@ -255,7 +255,7 @@
         return defaultValue;
       }
     },
-    
+
     // Safe localStorage set
     set: function(key, value) {
       try {
@@ -270,7 +270,7 @@
         return false;
       }
     },
-    
+
     // Remove from localStorage
     remove: function(key) {
       try {
@@ -281,7 +281,7 @@
         return false;
       }
     },
-    
+
     // Clear cache entries
     clearCache: function() {
       try {
@@ -296,9 +296,9 @@
       }
     }
   };
-  
+
   /* ====== COLOR UTILITIES ====== */
-  
+
   window.ColorUtils = {
     // Generate color from string (for avatars, etc.)
     stringToColor: function(str) {
@@ -309,7 +309,7 @@
       var hue = hash % 360;
       return 'hsl(' + hue + ', 65%, 55%)';
     },
-    
+
     // Get role color
     getRoleColor: function(role) {
       var colors = {
@@ -320,25 +320,25 @@
       return colors[role] || colors.user;
     }
   };
-  
+
   /* ====== PERFORMANCE UTILITIES ====== */
-  
+
   window.Performance = {
     // Measure execution time
     measure: function(label, func) {
       var start = performance.now();
       var result = func();
       var duration = performance.now() - start;
-      
+
       if (duration > 100) {
         console.warn('[Performance] Slow operation:', label, Math.round(duration) + 'ms');
       } else if (duration > 50) {
         console.log('[Performance] Moderate operation:', label, Math.round(duration) + 'ms');
       }
-      
+
       return result;
     },
-    
+
     // Async measure
     measureAsync: function(label, func) {
       var start = performance.now();
@@ -351,7 +351,7 @@
       });
     }
   };
-  
+
   if (window.logger) {
     window.logger.log('[Utils] Utility functions loaded');
   } else {
@@ -360,366 +360,3 @@
   }
 })();
 </script>
-
-
-/* File: utils.html - Shared utility functions to reduce code duplication */
-
-(function() {
-  'use strict';
-
-  /* ====== DOM HELPERS ====== */
-  
-  // jQuery-like selector (lightweight)
-  window.$ = function(selector) {
-    return document.querySelector(selector);
-  };
-  
-  window.$$ = function(selector) {
-    return document.querySelectorAll(selector);
-  };
-  
-  /* ====== STRING UTILITIES ====== */
-  
-  // HTML escape utility
-  window.esc = function(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  };
-  
-  // Format date string
-  window.todayStr = function() {
-    return new Date().toISOString().slice(0, 10);
-  };
-  
-  // Format storage key
-  window.storageKey = function(hub, date) {
-    return 'tasks_' + hub + '_' + date;
-  };
-  
-  /* ====== DATE UTILITIES ====== */
-  
-  window.DateUtils = {
-    // Parse date string to Date object
-    parseDate: function(dateStr) {
-      return new Date(dateStr + 'T00:00:00');
-    },
-    
-    // Format date for display
-    formatDate: function(date, locale) {
-      locale = locale || 'vi-VN';
-      return new Date(date).toLocaleDateString(locale, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-    },
-    
-    // Format datetime for display
-    formatDateTime: function(date, locale) {
-      locale = locale || 'vi-VN';
-      return new Date(date).toLocaleString(locale);
-    },
-    
-    // Get date range (start and end dates)
-    getDateRange: function(range, customStart, customEnd) {
-      var today = new Date();
-      var start, end;
-      
-      switch(range) {
-        case 'today':
-          start = today;
-          end = today;
-          break;
-        case 'week':
-          start = new Date(today);
-          start.setDate(today.getDate() - today.getDay()); // Start of week
-          end = new Date(start);
-          end.setDate(start.getDate() + 6); // End of week
-          break;
-        case 'month':
-          start = new Date(today.getFullYear(), today.getMonth(), 1);
-          end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case 'custom':
-          if (customStart) start = new Date(customStart + 'T00:00:00');
-          if (customEnd) end = new Date(customEnd + 'T23:59:59');
-          break;
-        default:
-          start = today;
-          end = today;
-      }
-      
-      return {
-        start: start ? start.toISOString().slice(0, 10) : todayStr(),
-        end: end ? end.toISOString().slice(0, 10) : todayStr()
-      };
-    }
-  };
-  
-  /* ====== ARRAY UTILITIES ====== */
-  
-  window.ArrayUtils = {
-    // Group array by key
-    groupBy: function(array, key) {
-      // Safety check: ensure array is valid
-      if (!array || !Array.isArray(array)) {
-        console.warn('ArrayUtils.groupBy: Invalid array provided');
-        return {};
-      }
-      return array.reduce(function(groups, item) {
-        var val = typeof key === 'function' ? key(item) : item[key];
-        if (!groups[val]) groups[val] = [];
-        groups[val].push(item);
-        return groups;
-      }, {});
-    },
-    
-    // Sort array by key
-    sortBy: function(array, key, descending) {
-      // Safety check: ensure array is valid
-      if (!array || !Array.isArray(array)) {
-        console.warn('ArrayUtils.sortBy: Invalid array provided');
-        return [];
-      }
-      return array.slice().sort(function(a, b) {
-        var aVal = typeof key === 'function' ? key(a) : a[key];
-        var bVal = typeof key === 'function' ? key(b) : b[key];
-        
-        if (aVal < bVal) return descending ? 1 : -1;
-        if (aVal > bVal) return descending ? -1 : 1;
-        return 0;
-      });
-    },
-    
-    // Unique array values
-    unique: function(array, key) {
-      // Safety check: ensure array is valid
-      if (!array || !Array.isArray(array)) {
-        console.warn('ArrayUtils.unique: Invalid array provided');
-        return [];
-      }
-      var seen = {};
-      return array.filter(function(item) {
-        var val = key ? item[key] : item;
-        if (seen[val]) return false;
-        seen[val] = true;
-        return true;
-      });
-    }
-  };
-  
-  /* ====== OBJECT UTILITIES ====== */
-  
-  window.ObjectUtils = {
-    // Deep clone object
-    clone: function(obj) {
-      // Safety check: ensure obj is valid
-      if (!obj || typeof obj !== 'object') {
-        console.warn('ObjectUtils.clone: Invalid object provided');
-        return null;
-      }
-      try {
-        return JSON.parse(JSON.stringify(obj));
-      } catch (e) {
-        console.warn('ObjectUtils.clone: Failed to clone object', e);
-        return null;
-      }
-    },
-    
-    // Merge objects
-    merge: function(target, source) {
-      for (var key in source) {
-        if (source.hasOwnProperty(key)) {
-          target[key] = source[key];
-        }
-      }
-      return target;
-    },
-    
-    // Check if object is empty
-    isEmpty: function(obj) {
-      return !obj || Object.keys(obj).length === 0;
-    }
-  };
-  
-  /* ====== VALIDATION UTILITIES ====== */
-  
-  window.Validation = {
-    // Validate email
-    isEmail: function(email) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    },
-    
-    // Validate URL
-    isUrl: function(url) {
-      try {
-        new URL(url);
-        return true;
-      } catch (e) {
-        return /^https?:\/\/.+/.test(url);
-      }
-    },
-    
-    // Validate date string (YYYY-MM-DD)
-    isDate: function(dateStr) {
-      return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
-    },
-    
-    // Validate SLA format (HH:MM)
-    isSLA: function(sla) {
-      return /^\d{1,2}:\d{2}$/.test(sla);
-    }
-  };
-  
-  /* ====== DEBOUNCE & THROTTLE ====== */
-  
-  // Debounce function
-  window.debounce = function(func, wait) {
-    var timeout;
-    return function() {
-      var context = this;
-      var args = arguments;
-      clearTimeout(timeout);
-      timeout = setTimeout(function() {
-        func.apply(context, args);
-      }, wait);
-    };
-  };
-  
-  // Throttle function
-  window.throttle = function(func, limit) {
-    var inThrottle;
-    return function() {
-      var args = arguments;
-      var context = this;
-      if (!inThrottle) {
-        func.apply(context, args);
-        inThrottle = true;
-        setTimeout(function() {
-          inThrottle = false;
-        }, limit);
-      }
-    };
-  };
-  
-  /* ====== STORAGE UTILITIES ====== */
-  
-  window.StorageUtils = {
-    // Safe localStorage get
-    get: function(key, defaultValue) {
-      try {
-        var value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : defaultValue;
-      } catch (e) {
-        console.warn('Storage get error:', e);
-        return defaultValue;
-      }
-    },
-    
-    // Safe localStorage set
-    set: function(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch (e) {
-        console.warn('Storage set error:', e);
-        if (e.name === 'QuotaExceededError') {
-          // Clear old cache on quota exceeded
-          this.clearCache();
-        }
-        return false;
-      }
-    },
-    
-    // Remove from localStorage
-    remove: function(key) {
-      try {
-        localStorage.removeItem(key);
-        return true;
-      } catch (e) {
-        console.warn('Storage remove error:', e);
-        return false;
-      }
-    },
-    
-    // Clear cache entries
-    clearCache: function() {
-      try {
-        var keys = Object.keys(localStorage);
-        keys.forEach(function(key) {
-          if (key.indexOf('cache') !== -1 || key.indexOf('Cache') !== -1) {
-            localStorage.removeItem(key);
-          }
-        });
-      } catch (e) {
-        console.warn('Storage clearCache error:', e);
-      }
-    }
-  };
-  
-  /* ====== COLOR UTILITIES ====== */
-  
-  window.ColorUtils = {
-    // Generate color from string (for avatars, etc.)
-    stringToColor: function(str) {
-      var hash = 0;
-      for (var i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      var hue = hash % 360;
-      return 'hsl(' + hue + ', 65%, 55%)';
-    },
-    
-    // Get role color
-    getRoleColor: function(role) {
-      var colors = {
-        admin: '#ef4444',
-        user: '#3b82f6',
-        lead: '#10b981'
-      };
-      return colors[role] || colors.user;
-    }
-  };
-  
-  /* ====== PERFORMANCE UTILITIES ====== */
-  
-  window.Performance = {
-    // Measure execution time
-    measure: function(label, func) {
-      var start = performance.now();
-      var result = func();
-      var duration = performance.now() - start;
-      
-      if (duration > 100) {
-        console.warn('[Performance] Slow operation:', label, Math.round(duration) + 'ms');
-      } else if (duration > 50) {
-        console.log('[Performance] Moderate operation:', label, Math.round(duration) + 'ms');
-      }
-      
-      return result;
-    },
-    
-    // Async measure
-    measureAsync: function(label, func) {
-      var start = performance.now();
-      return func().then(function(result) {
-        var duration = performance.now() - start;
-        if (duration > 100) {
-          console.warn('[Performance] Slow async operation:', label, Math.round(duration) + 'ms');
-        }
-        return result;
-      });
-    }
-  };
-  
-  if (window.logger) {
-    window.logger.log('[Utils] Utility functions loaded');
-  } else {
-    // Fallback if logger not loaded yet
-    console.log('[Utils] Utility functions loaded');
-  }
-})();
-</script>
-

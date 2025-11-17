@@ -293,10 +293,17 @@
     return strings[key] || key;
   };
   
-  // Get error message
+  // Get error message (backward compatibility wrapper for ErrorHandler)
   window.getErrorMsg = function(action, error) {
+    // If ErrorHandler is available, use it
+    if (window.ErrorHandler) {
+      var errorInfo = window.ErrorHandler._processError(error, action);
+      return window.ErrorHandler._getUserMessage(errorInfo, localStorage.getItem('spx_lang') || 'vi', {});
+    }
+
+    // Fallback to old implementation if ErrorHandler not loaded yet
     var errorStr = (error || '').toString().toLowerCase();
-    
+
     // Check common patterns
     if (errorStr.indexOf('permission') !== -1 || errorStr.indexOf('denied') !== -1) {
       return window.ERROR_MESSAGES.permission;
@@ -310,15 +317,15 @@
     if (errorStr.indexOf('quota') !== -1 || errorStr.indexOf('limit') !== -1) {
       return window.ERROR_MESSAGES.quota;
     }
-    
+
     // Check action-specific
     if (action && window.ERROR_MESSAGES[action]) {
       return window.ERROR_MESSAGES[action];
     }
-    
+
     return window.ERROR_MESSAGES.generic;
   };
-  
+
   logger.log('[Config] Configuration loaded');
 })();
 </script>
