@@ -1,0 +1,15 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "## Tổng quan Hệ thống quản lý checklist hàng ngày cho SPX Express với xác thực Google nội bộ, phân quyền theo Hub, và các module quản lý chuyên nghiệp.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

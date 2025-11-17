@@ -1,0 +1,325 @@
+<script>
+/* ====== [SPX] DAILY CHECKLIST - CONFIGURATION MODULE ====== */
+/* File: config.html - Application configuration and constants */
+
+(function() {
+  'use strict';
+
+  /* ====== DEVELOPMENT MODE ====== */
+  // Set to false in production to reduce console logs
+  window.DEV_MODE = window.location.hostname === 'localhost' || 
+                    window.location.hostname === '127.0.0.1' ||
+                    window.location.href.indexOf('dev') !== -1 ||
+                    window.location.href.indexOf('debug') !== -1 ||
+                    false; // Change to false for production
+
+  /* ====== LOGGER UTILITY ====== */
+  window.logger = {
+    log: function() {
+      if (window.DEV_MODE) {
+        console.log.apply(console, arguments);
+      }
+    },
+    warn: function() {
+      if (window.DEV_MODE) {
+        console.warn.apply(console, arguments);
+      }
+    },
+    error: function() {
+      // Always log errors, even in production
+      console.error.apply(console, arguments);
+    },
+    info: function() {
+      if (window.DEV_MODE) {
+        console.info.apply(console, arguments);
+      }
+    }
+  };
+
+  /* ====== APP CONFIGURATION ====== */
+  
+  window.APP_CONFIG = {
+    // App metadata
+    appTitle: '[SPX] DAILY CHECKLIST',
+    appVersion: 'v2.6',
+    companyName: 'SPX Express TVH',
+    copyrightYear: '2025',
+    footerText: 'Daily Checklist Management System with Security',
+    
+    // Branding (can be customized)
+    logoUrl: 'https://images.seeklogo.com/logo-png/49/1/spx-express-indonesia-logo-png_seeklogo-499970.png',
+    faviconUrl: 'https://images.seeklogo.com/logo-png/49/1/spx-express-indonesia-logo-png_seeklogo-499970.png',
+    
+    // Cache configuration
+    cache: {
+      defaultTTL: 5 * 60 * 1000, // 5 minutes
+      taskTTL: 10 * 60 * 1000, // 10 minutes for tasks
+      maxSize: 50
+    },
+    
+    // Performance configuration
+    performance: {
+      slowThreshold: 100, // ms
+      moderateThreshold: 50 // ms
+    },
+    
+    // API configuration
+    api: {
+      batchDelay: 100, // ms
+      retryAttempts: 3,
+      retryDelay: 1000 // ms
+    },
+    
+    // UI configuration
+    ui: {
+      skeletonCount: 5, // Number of skeleton loaders
+      toastDuration: 3000, // ms
+      animationDuration: 300 // ms
+    }
+  };
+  
+  /* ====== HUB DATA ====== */
+  
+  window.HUB_DATA = {
+    '80TVH01': { name: '80-TVH TRA VINH HUB' },
+    '80TVH02': { name: '80-TVH DUYEN HAI HUB' },
+    '80TVH03': { name: '80-TVH CAU NGANG HUB' },
+    '80TVH04': { name: '80-TVH CANG LONG HUB' },
+    '80TVH05': { name: '80-TVH TIEU CAN HUB' },
+    '80TVH06': { name: '80-TVH TRA CU HUB' },
+    '80TVH07': { name: '80-TVH TRA VINH 02 HUB' },
+    '80TVH08': { name: '80-TVH TRA VINH 03 HUB' },
+    '80TVH09': { name: '80-TVH CAU KE HUB' },
+    '80TVH10': { name: '80-TVH DUYEN HAI 02 HUB' },
+    '80TVH11': { name: '80-TVH TRA VINH 04 HUB' }
+  };
+  
+  /* ====== PRIORITY LEVELS ====== */
+  
+  window.PRIORITY_LEVELS = {
+    high: {
+      label: 'Cao',
+      color: '#ef4444',
+      icon: '🔴'
+    },
+    medium: {
+      label: 'Trung bình',
+      color: '#f59e0b',
+      icon: '🟡'
+    },
+    low: {
+      label: 'Thấp',
+      color: '#3b82f6',
+      icon: '🔵'
+    }
+  };
+  
+  /* ====== TASK CATEGORIES ====== */
+  
+  window.TASK_CATEGORIES = [
+    'Đầu Ca',
+    'Trong Ca',
+    'Cuối Ca'
+  ];
+  
+  /* ====== QA CATEGORIES ====== */
+  
+  window.QA_CATEGORIES = [
+    { value: 'Thao tác', label: '🔧 Thao tác', icon: '🔧' },
+    { value: 'Giao diện', label: '🎨 Giao diện', icon: '🎨' },
+    { value: 'Nội dung', label: '📝 Nội dung', icon: '📝' },
+    { value: 'Khác', label: '❓ Khác', icon: '❓' }
+  ];
+  
+  /* ====== GRADIENT THEMES ====== */
+  
+  window.GRADIENT_THEMES = {
+    sunset: {
+      name: '🌅 Sunset Orange',
+      colors: {
+        primary: '#ff6a00',
+        secondary: '#ffb366',
+        background: 'linear-gradient(135deg, #ff6a00 0%, #ff8c42 25%, #ffb366 50%, #ffd9b3 75%, #fff5eb 100%)'
+      }
+    },
+    ocean: {
+      name: '🌊 Ocean Blue',
+      colors: {
+        primary: '#0066cc',
+        secondary: '#66b3ff',
+        background: 'linear-gradient(135deg, #0066cc 0%, #0080ff 25%, #3399ff 50%, #66b3ff 75%, #e6f2ff 100%)'
+      }
+    },
+    forest: {
+      name: '🌲 Forest Green',
+      colors: {
+        primary: '#0d4f3c',
+        secondary: '#66d4a8',
+        background: 'linear-gradient(135deg, #0d4f3c 0%, #1a7a5e 25%, #2ea67a 50%, #66d4a8 75%, #e6f9f3 100%)'
+      }
+    },
+    purple: {
+      name: '💜 Purple Dream',
+      colors: {
+        primary: '#6b2c91',
+        secondary: '#c084fc',
+        background: 'linear-gradient(135deg, #6b2c91 0%, #8b3db8 25%, #a855f7 50%, #c084fc 75%, #f3e8ff 100%)'
+      }
+    }
+  };
+  
+  /* ====== DATE RANGES ====== */
+  
+  window.DATE_RANGES = {
+    today: {
+      label: 'Hôm nay',
+      value: 'today'
+    },
+    week: {
+      label: 'Tuần này',
+      value: 'week'
+    },
+    month: {
+      label: 'Tháng này',
+      value: 'month'
+    },
+    custom: {
+      label: 'Tùy chỉnh',
+      value: 'custom'
+    }
+  };
+  
+  /* ====== ERROR MESSAGES ====== */
+  
+  window.ERROR_MESSAGES = {
+    permission: 'Bạn không có quyền thực hiện thao tác này. Vui lòng liên hệ admin.',
+    authentication: 'Phiên đăng nhập đã hết hạn. Vui lòng làm mới trang.',
+    network: 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.',
+    quota: 'Đã vượt quá giới hạn. Vui lòng thử lại sau.',
+    generic: 'Đã xảy ra lỗi. Vui lòng thử lại.',
+    
+    // Action-specific
+    whoami: 'Không thể xác thực người dùng. Vui lòng đăng nhập lại.',
+    loadTasks: 'Không thể tải tasks. Vui lòng thử lại.',
+    saveTasks: 'Không thể lưu tasks. Vui lòng thử lại.',
+    saveUser: 'Không thể lưu user. Vui lòng kiểm tra thông tin và thử lại.',
+    deleteUser: 'Không thể xóa user. Vui lòng thử lại.'
+  };
+  
+  /* ====== SUCCESS MESSAGES ====== */
+  
+  window.SUCCESS_MESSAGES = {
+    saveTasks: 'Đã lưu tasks thành công!',
+    saveUser: 'Đã lưu user thành công!',
+    deleteUser: 'Đã xóa user thành công!',
+    syncCalendar: 'Đã đồng bộ với Google Calendar!',
+    submitQuestion: 'Đã gửi câu hỏi thành công!',
+    answerQuestion: 'Đã trả lời câu hỏi thành công!'
+  };
+  
+  /* ====== I18N STRINGS ====== */
+  
+  window.I18N = {
+    vi: {
+      // Common
+      save: 'Lưu',
+      cancel: 'Hủy',
+      delete: 'Xóa',
+      edit: 'Sửa',
+      close: 'Đóng',
+      loading: 'Đang tải...',
+      
+      // Tabs
+      checklist: '📋 Checklist',
+      report: '📊 Báo Cáo',
+      unfinished: '📌 Chưa Hoàn Thành',
+      admin: '⚙️ Admin',
+      qa: '❓ Q&A',
+      about: 'ℹ️ Thông Tin',
+      
+      // Labels
+      hub: 'Hub',
+      date: 'Ngày',
+      category: 'Danh mục',
+      task: 'Task',
+      status: 'Trạng thái',
+      sla: 'SLA',
+      
+      // Status
+      completed: 'Hoàn thành',
+      pending: 'Chưa hoàn thành',
+      online: 'Online',
+      offline: 'Offline'
+    },
+    en: {
+      // Common
+      save: 'Save',
+      cancel: 'Cancel',
+      delete: 'Delete',
+      edit: 'Edit',
+      close: 'Close',
+      loading: 'Loading...',
+      
+      // Tabs
+      checklist: '📋 Checklist',
+      report: '📊 Report',
+      unfinished: '📌 Unfinished',
+      admin: '⚙️ Admin',
+      qa: '❓ Q&A',
+      about: 'ℹ️ About',
+      
+      // Labels
+      hub: 'Hub',
+      date: 'Date',
+      category: 'Category',
+      task: 'Task',
+      status: 'Status',
+      sla: 'SLA',
+      
+      // Status
+      completed: 'Completed',
+      pending: 'Pending',
+      online: 'Online',
+      offline: 'Offline'
+    }
+  };
+  
+  /* ====== GETTERS ====== */
+  
+  // Get i18n string
+  window.t = function(key, lang) {
+    lang = lang || localStorage.getItem('spx_lang') || 'vi';
+    var strings = window.I18N[lang] || window.I18N.vi;
+    return strings[key] || key;
+  };
+  
+  // Get error message
+  window.getErrorMsg = function(action, error) {
+    var errorStr = (error || '').toString().toLowerCase();
+    
+    // Check common patterns
+    if (errorStr.indexOf('permission') !== -1 || errorStr.indexOf('denied') !== -1) {
+      return window.ERROR_MESSAGES.permission;
+    }
+    if (errorStr.indexOf('not authenticated') !== -1 || errorStr.indexOf('authentication') !== -1) {
+      return window.ERROR_MESSAGES.authentication;
+    }
+    if (errorStr.indexOf('network') !== -1 || errorStr.indexOf('timeout') !== -1) {
+      return window.ERROR_MESSAGES.network;
+    }
+    if (errorStr.indexOf('quota') !== -1 || errorStr.indexOf('limit') !== -1) {
+      return window.ERROR_MESSAGES.quota;
+    }
+    
+    // Check action-specific
+    if (action && window.ERROR_MESSAGES[action]) {
+      return window.ERROR_MESSAGES[action];
+    }
+    
+    return window.ERROR_MESSAGES.generic;
+  };
+  
+  logger.log('[Config] Configuration loaded');
+})();
+</script>
+
